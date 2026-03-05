@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Pressable, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Linking } from 'react-native';
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { useColorScheme } from 'react-native';
