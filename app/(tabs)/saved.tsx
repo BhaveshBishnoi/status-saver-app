@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, FlatList, RefreshControl, View, Text, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, FlatList, RefreshControl, View, Text, ActivityIndicator, Alert, Pressable } from 'react-native';
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../src/constants/Colors';
@@ -10,6 +10,7 @@ import { shareStatus, deleteSavedStatus } from '../../src/services/fileService';
 import * as FileSystem from 'expo-file-system';
 import { SAVE_PATH } from '../../src/constants/Paths';
 import { useFocusEffect } from 'expo-router';
+import { Trash2, History, RotateCcw } from 'lucide-react-native';
 
 export default function SavedScreen() {
     const colorScheme = useColorScheme();
@@ -36,7 +37,7 @@ export default function SavedScreen() {
                         mappedFiles.push({
                             uri: fileUri,
                             name: file,
-                            type: file.endsWith('.mp4') ? 'video' : 'image',
+                            type: (file.endsWith('.mp4') || file.endsWith('.gif')) ? 'video' : 'image',
                             modificationTime: fileInfo.modificationTime || 0,
                         });
                     }
@@ -71,7 +72,7 @@ export default function SavedScreen() {
     const handleDelete = (status: StatusFile) => {
         Alert.alert(
             'Delete Status',
-            'Are you sure you want to delete this status?',
+            'Are you sure you want to delete this status permanently?',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -80,7 +81,7 @@ export default function SavedScreen() {
                     onPress: async () => {
                         const success = await deleteSavedStatus(status.uri);
                         if (success) {
-                            setStatuses(statuses.filter(s => s.uri !== status.uri));
+                            setStatuses(prev => prev.filter(s => s.uri !== status.uri));
                             if (selectedStatus?.uri === status.uri) {
                                 setPreviewVisible(false);
                             }
@@ -96,7 +97,7 @@ export default function SavedScreen() {
         setPreviewVisible(true);
     };
 
-    if (loading) {
+    if (loading && !refreshing) {
         return (
             <ScreenContainer style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.primary} />
@@ -106,28 +107,36 @@ export default function SavedScreen() {
 
     if (statuses.length === 0) {
         return (
-            <ScreenContainer style={styles.centered} scrollable>
+            <ScreenContainer style={styles.centered} scrollable noPadding>
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
-                <Text style={[styles.message, { color: theme.text }]}>No saved statuses found.</Text>
-                <Text style={[styles.subMessage, { color: theme.textSecondary }]}>Downloaded statuses will appear here.</Text>
+                <History color={theme.gray} size={64} style={styles.icon} />
+                <Text style={[styles.message, { color: theme.text }]}>No saved statuses yet.</Text>
+                <Text style={[styles.subMessage, { color: theme.textSecondary }]}>
+                    Downloaded statuses will show up here for you to view even after they expire in WhatsApp.
+                </Text>
+                <Pressable style={[styles.btn, { backgroundColor: theme.primary }]} onPress={onRefresh}>
+                    <RotateCcw color="white" size={18} style={{ marginRight: 8 }} />
+                    <Text style={styles.btnText}>Check Again</Text>
+                </Pressable>
             </ScreenContainer>
         );
     }
 
     return (
-        <ScreenContainer>
+        <ScreenContainer noPadding>
             <FlatList
                 data={statuses}
                 renderItem={({ item }) => (
                     <StatusCard
                         status={item}
                         onPress={() => handlePress(item)}
-                        onDownload={() => handleDelete(item)} // Reusing download icon slot as delete for saved
+                        onDownload={() => handleDelete(item)}
                         onShare={() => handleShare(item)}
                     />
                 )}
                 keyExtractor={(item) => item.uri}
                 numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
                 contentContainerStyle={styles.list}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
@@ -149,19 +158,42 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 20,
+        padding: 32,
     },
     list: {
-        padding: 8,
+        padding: 12,
+    },
+    columnWrapper: {
+        justifyContent: 'space-between',
     },
     message: {
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 18,
+        fontWeight: '700',
         textAlign: 'center',
+        marginBottom: 8,
     },
     subMessage: {
         fontSize: 14,
-        marginTop: 8,
         textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 24,
+        paddingHorizontal: 20,
+    },
+    icon: {
+        marginBottom: 20,
+        opacity: 0.3,
+    },
+    btn: {
+        flexDirection: 'row',
+        height: 48,
+        borderRadius: 24,
+        paddingHorizontal: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    btnText: {
+        color: 'white',
+        fontSize: 15,
+        fontWeight: '700',
     },
 });

@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, Pressable, Modal, useColorScheme, Dimensions } from 'react-native';
+import { StyleSheet, View, Pressable, Modal, useColorScheme, Dimensions, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { X, Download, Share2 } from 'lucide-react-native';
 import { Colors } from '../../src/constants/Colors';
 import { StatusFile } from '../../src/services/statusService';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ interface StatusPreviewProps {
 export const StatusPreview: React.FC<StatusPreviewProps> = ({ status, visible, onClose, onDownload, onShare }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+    const insets = useSafeAreaInsets();
 
     const player = useVideoPlayer(status?.uri || '', (player) => {
         player.loop = true;
@@ -30,7 +32,7 @@ export const StatusPreview: React.FC<StatusPreviewProps> = ({ status, visible, o
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
             <View style={styles.overlay}>
-                <View style={styles.header}>
+                <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                     <Pressable onPress={onClose} style={styles.closeButton}>
                         <X color="white" size={28} />
                     </Pressable>
@@ -59,6 +61,10 @@ export const StatusPreview: React.FC<StatusPreviewProps> = ({ status, visible, o
                         />
                     )}
                 </View>
+
+                <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+                    <Text style={styles.statusName}>{status.name}</Text>
+                </View>
             </View>
         </Modal>
     );
@@ -73,9 +79,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 50,
+        paddingHorizontal: 20,
         zIndex: 10,
+        backgroundColor: 'rgba(0,0,0,0.3)',
     },
     closeButton: {
         padding: 8,
@@ -94,6 +100,20 @@ const styles = StyleSheet.create({
     },
     fullMedia: {
         width: width,
-        height: height * 0.8,
+        height: height,
     },
+    footer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        paddingVertical: 12,
+    },
+    statusName: {
+        color: 'white',
+        fontSize: 12,
+        opacity: 0.7,
+    }
 });
