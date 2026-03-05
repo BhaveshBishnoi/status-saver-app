@@ -1,32 +1,50 @@
 import * as MediaLibrary from 'expo-media-library';
 import { Alert, Linking, Platform } from 'react-native';
+import * as Device from 'expo-device';
+import * as IntentLauncher from 'expo-intent-launcher';
 
 export const requestStoragePermissions = async () => {
     if (Platform.OS !== 'android') return true;
 
     try {
-        const { status, canAskAgain } = await MediaLibrary.requestPermissionsAsync();
+        // Basic Media Library Permission
+        const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
 
-        if (status === 'granted') {
+        // For Android 11+ (API 30+), we need MANAGE_EXTERNAL_STORAGE for hidden folders
+        if (Device.osInternalBuildId && parseInt(Device.osInternalBuildId) >= 30 || (Platform.Version as number) >= 30) {
+            // Check if we already have it (hard to check directly in Expo without a custom native module, 
+            // but we can prompt the user to enable it in settings if statuses aren't showing)
+            // For now, we'll provide a clear instruction to the user.
+            return mediaStatus === 'granted';
+        }
+
+        if (mediaStatus === 'granted') {
             return true;
         }
 
-        if (!canAskAgain) {
-            Alert.alert(
-                'Permission Required',
-                'Storage permission is required to view and download statuses. Please enable it in settings.',
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Open Settings', onPress: () => Linking.openSettings() },
-                ]
-            );
-            return false;
-        }
-
+        Alert.alert(
+            'Permission Required',
+            'Storage permission is required to view and download statuses. Please enable it in settings.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+        );
         return false;
     } catch (error) {
         console.error('Error requesting permissions:', error);
         return false;
+    }
+};
+
+export const openAllFilesAccessSettings = () => {
+    if (Platform.OS === 'android' && (Platform.Version as number) >= 30) {
+        const pkg = 'com.bhavesh.statussaver'; // Should match app.json
+        IntentLauncher.startActivityAsync('android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION', {
+            data: `package:${pkg}`,
+        });
+    } else {
+        Linking.openSettings();
     }
 };
 

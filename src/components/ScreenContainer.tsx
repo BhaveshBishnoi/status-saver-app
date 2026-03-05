@@ -1,36 +1,64 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, useColorScheme, ViewStyle, ScrollView } from 'react-native';
+import { StyleSheet, View, SafeAreaView, useColorScheme, ViewStyle, ScrollView, StatusBar } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ScreenContainerProps {
     children: React.ReactNode;
     style?: ViewStyle;
     scrollable?: boolean;
+    noPadding?: boolean;
 }
 
-export const ScreenContainer: React.FC<ScreenContainerProps> = ({ children, style, scrollable = false }) => {
+const ScreenContainerContent: React.FC<ScreenContainerProps> = ({
+    children,
+    style,
+    scrollable = false,
+    noPadding = false
+}) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+    const insets = useSafeAreaInsets();
 
     const Container = scrollable ? ScrollView : View;
 
     return (
-        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-            <Container style={[styles.container, style]} contentContainerStyle={scrollable ? styles.contentContainer : undefined}>
+        <View style={[
+            styles.container,
+            {
+                backgroundColor: theme.background,
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+            }
+        ]}>
+            <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+            <Container
+                style={[styles.flex, style]}
+                contentContainerStyle={scrollable ? [styles.contentContainer, noPadding && { padding: 0 }] : undefined}
+            >
                 {children}
             </Container>
-        </SafeAreaView>
+        </View>
     );
 };
 
+export const ScreenContainer: React.FC<ScreenContainerProps> = (props) => (
+    <SafeAreaProvider>
+        <ScreenContainerContent {...props} />
+    </SafeAreaProvider>
+);
+
 const styles = StyleSheet.create({
-    safeArea: {
+    container: {
         flex: 1,
     },
-    container: {
+    flex: {
         flex: 1,
     },
     contentContainer: {
         paddingBottom: 20,
+        paddingHorizontal: 16,
     },
 });

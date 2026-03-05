@@ -27,7 +27,8 @@
         "WRITE_EXTERNAL_STORAGE",
         "MEDIA_CONTENT_CONTROL",
         "READ_MEDIA_IMAGES",
-        "READ_MEDIA_VIDEO"
+        "READ_MEDIA_VIDEO",
+        "android.permission.MANAGE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
