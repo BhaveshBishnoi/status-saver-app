@@ -5,8 +5,8 @@ import { useColorScheme } from 'react-native';
 import { Colors } from '../src/constants/Colors';
 
 export default function RootLayout() {
-    const colorScheme = useColorScheme() || 'light';
-    const theme = Colors[colorScheme];
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

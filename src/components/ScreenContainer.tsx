@@ -9,8 +9,8 @@ interface ScreenContainerProps {
 }
 
 export const ScreenContainer: React.FC<ScreenContainerProps> = ({ children, style, scrollable = false }) => {
-    const colorScheme = useColorScheme() || 'light';
-    const theme = Colors[colorScheme];
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
 
     const Container = scrollable ? ScrollView : View;
 

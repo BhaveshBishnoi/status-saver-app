@@ -4,8 +4,8 @@ import { Colors } from '../../src/constants/Colors';
 import { Download, HardDriveDownload, History, Settings, Wrench } from 'lucide-react-native';
 
 export default function TabLayout() {
-    const colorScheme = useColorScheme() || 'light';
-    const theme = Colors[colorScheme];
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
 
     return (
         <Tabs
