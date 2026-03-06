@@ -3,10 +3,10 @@ import { StyleSheet, FlatList, RefreshControl, View, Text, ActivityIndicator, Pr
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../src/constants/Colors';
-import { StatusFile, scanWhatsAppStatuses } from '../../src/services/statusService';
+import { StatusFile, scanWhatsAppStatuses, requestAndroid11DirectoryPermission } from '../../src/services/statusService';
 import { StatusCard } from '../../src/components/StatusCard';
 import { StatusPreview } from '../../src/components/StatusPreview';
-import { requestStoragePermissions, checkStoragePermissions, openAllFilesAccessSettings } from '../../src/utils/permissions';
+import { requestStoragePermissions, checkStoragePermissions, openAllFilesAccessSettings, requestContactsPermissions } from '../../src/utils/permissions';
 import { downloadStatus, shareStatus } from '../../src/services/fileService';
 import { ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react-native';
 
@@ -43,6 +43,9 @@ export default function StatusesScreen() {
 
     useEffect(() => {
         const init = async () => {
+            // Also explicitly request Contacts
+            await requestContactsPermissions();
+
             const granted = await requestStoragePermissions();
             setHasPermission(granted);
             if (granted) {
@@ -65,6 +68,14 @@ export default function StatusesScreen() {
     const handlePress = (status: StatusFile) => {
         setSelectedStatus(status);
         setPreviewVisible(true);
+    };
+
+    const handlePickFolder = async () => {
+        const success = await requestAndroid11DirectoryPermission();
+        if (success) {
+            setLoading(true);
+            await fetchStatuses();
+        }
     };
 
     if (loading && !refreshing) {
@@ -106,13 +117,26 @@ export default function StatusesScreen() {
                 </Text>
 
                 {isAndroid11Plus && (
-                    <Pressable
-                        style={[styles.button, { backgroundColor: theme.secondary, marginTop: 20 }]}
-                        onPress={openAllFilesAccessSettings}
-                    >
-                        <ShieldCheck color="white" size={20} style={{ marginRight: 8 }} />
-                        <Text style={styles.buttonText}>Grant Special Access (Android 11+)</Text>
-                    </Pressable>
+                    <>
+                        <Text style={[styles.subMessage, { color: theme.textSecondary, marginTop: 16 }]}>
+                            If granting special access fails, manually select the WhatsApp ".Statuses" folder:
+                        </Text>
+                        <Pressable
+                            style={[styles.button, { backgroundColor: theme.primary, marginBottom: 12 }]}
+                            onPress={handlePickFolder}
+                        >
+                            <ShieldCheck color="white" size={20} style={{ marginRight: 8 }} />
+                            <Text style={styles.buttonText}>Select WhatsApp Folder</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={[styles.button, { backgroundColor: theme.secondary, marginTop: 8 }]}
+                            onPress={openAllFilesAccessSettings}
+                        >
+                            <ShieldCheck color="white" size={20} style={{ marginRight: 8 }} />
+                            <Text style={styles.buttonText}>Grant Special Access</Text>
+                        </Pressable>
+                    </>
                 )}
 
                 <Pressable
