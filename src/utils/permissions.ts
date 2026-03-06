@@ -2,6 +2,38 @@ import * as MediaLibrary from 'expo-media-library';
 import { Alert, Linking, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as IntentLauncher from 'expo-intent-launcher';
+import * as Contacts from 'expo-contacts';
+
+export const requestContactsPermissions = async () => {
+    try {
+        const { status } = await Contacts.requestPermissionsAsync();
+        if (status === 'granted') {
+            return true;
+        }
+
+        Alert.alert(
+            'Permission Required',
+            'Contacts permission is required to identify status creators. Please enable it in settings.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+        );
+        return false;
+    } catch (error) {
+        console.error('Error requesting contacts permissions:', error);
+        return false;
+    }
+};
+
+export const checkContactsPermissions = async () => {
+    try {
+        const { status } = await Contacts.getPermissionsAsync();
+        return status === 'granted';
+    } catch (error) {
+        return false;
+    }
+};
 
 export const requestStoragePermissions = async () => {
     if (Platform.OS !== 'android') return true;

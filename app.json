@@ -23,6 +23,7 @@
       },
       "package": "com.bhavesh.statussaver",
       "permissions": [
+        "READ_CONTACTS",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "MEDIA_CONTENT_CONTROL",
