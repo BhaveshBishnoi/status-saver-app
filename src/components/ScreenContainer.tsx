@@ -22,6 +22,11 @@ const ScreenContainerContent: React.FC<ScreenContainerProps> = ({
 
     const Container = scrollable ? ScrollView : View;
 
+    const containerStyle = [styles.flex, !scrollable && style];
+    const contentStyle = scrollable
+        ? [styles.contentContainer, noPadding && { padding: 0 }, style]
+        : undefined;
+
     return (
         <View style={[
             styles.container,
@@ -35,8 +40,8 @@ const ScreenContainerContent: React.FC<ScreenContainerProps> = ({
         ]}>
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
             <Container
-                style={[styles.flex, style]}
-                contentContainerStyle={scrollable ? [styles.contentContainer, noPadding && { padding: 0 }] : undefined}
+                style={containerStyle}
+                contentContainerStyle={contentStyle}
             >
                 {children}
             </Container>
